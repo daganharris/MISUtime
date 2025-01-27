@@ -1,25 +1,31 @@
-﻿namespace MISUtime
+﻿using System.Runtime.CompilerServices;
+
+namespace MISUtime
 {
     internal class Program
     {
         static void Main(string[] args)
         {
-            MISUtimestamp m = new MISUtimestamp(new DateTime(1951, 2, 3));
+            //MISUtimestamp m = new MISUtimestamp(new DateTime(1951, 2, 3));
+            MISUtimestamp m = new MISUtimestamp(new DateTime(2025, 1, 21));
             Console.WriteLine(m.Timestamp);
+            Console.WriteLine(MISUtimestamp.ToDateTime(m).ToString());
         }
     }//1943
     class MISUtimestamp
     {
-        private const double DECIMAL_EPOCH = 95397359816;
+        public const long DECIMAL_EPOCH = 76603264427;
         private readonly double _dtimestamp;
         private readonly DateTime _eTime;
+
         public double Timestamp
         {
-            get 
-            { 
-                return double.Parse(_dtimestamp.ToString("0.########")); 
+            get
+            {
+                return double.Parse(_dtimestamp.ToString("0.########"));
             }
         }
+
         public int Year
         {
             get
@@ -58,80 +64,52 @@
         public MISUtimestamp(double dtimestamp)
         {
             _dtimestamp = dtimestamp;
+            _eTime = ToDateTime(this); 
         }
+
         public MISUtimestamp(DateTime eTime)
         {
+            long ticks = eTime.Ticks;
+            double totalRegularSeconds = (double)ticks / TimeSpan.TicksPerSecond;
+            double totalMisuSeconds = (totalRegularSeconds / 0.864) + DECIMAL_EPOCH;
+
+            long totalMisuDays = (long)(totalMisuSeconds / 100000);
+            double remainingMisuSeconds = totalMisuSeconds % 100000;
+
+            int hour = (int)(remainingMisuSeconds / 10000);
+            remainingMisuSeconds %= 10000;
+            int minute = (int)(remainingMisuSeconds / 100);
+            int second = (int)(remainingMisuSeconds % 100);
+
+            int year = (int)(totalMisuDays / 1000) + 1;
+            int dayOfYear = (int)(totalMisuDays % 1000);
+
+            double fractionalPart = dayOfYear * 100000.0 + hour * 10000.0 + minute * 100.0 + second;
+            fractionalPart /= 100000000.0; // 1e8
+
+            _dtimestamp = year + fractionalPart;
             _eTime = eTime;
-            double aggregatedDays = ((double)_eTime.Year * 365.2425) + _eTime.DayOfYear;
-
-            double aggregatedSeconds = (_eTime.Hour * 60 * 60) + (_eTime.Minute * 60) + (aggregatedDays * 24 * 60 * 60);
-            double dSeconds = (aggregatedSeconds * 0.864) + DECIMAL_EPOCH;
-
-            _dtimestamp = dSeconds / (100 * 100 * 10 * 1000);
         }
-        public MISUtimestamp(int year, int month, int day, int hour, int minute, int second)
-        {
-            _eTime = new DateTime(year, month, day, hour, minute, second);
-            double aggregatedDays = ((double)_eTime.Year * 365.2425) + _eTime.DayOfYear;
 
-            double aggregatedSeconds = (_eTime.Hour * 60 * 60) + (_eTime.Minute * 60) + (aggregatedDays * 24 * 60 * 60);
-
-            double dSeconds = (aggregatedSeconds + DECIMAL_EPOCH) * 0.864;
-
-            _dtimestamp = dSeconds / (100 * 100 * 10 * 1000);
-        }
-        public MISUtimestamp(int year, int day, int hour, int minute, int second)
-        {
-            _dtimestamp = year;
-            _dtimestamp += day / 1000;
-            _dtimestamp += hour / (1000 * 10);
-            _dtimestamp += minute / (1000 * 10 * 100);
-            _dtimestamp += minute / (1000 * 10 * 100 * 100);
-        }
         public static DateTime ToDateTime(MISUtimestamp mTime)
         {
-            throw new NotImplementedException("To Do!");
-            // to do
-            //int dSeconds = mTime.Second + (mTime.Minute * 100) + (mTime.Hour * 100 * 100) + (mTime.Day * 100 * 100 * 10) + (mTime.Year * 100 * 100 * 10 * 1000);
+            double dt = mTime.Timestamp;
+            int year = (int)dt;
+            double fractionalPart = dt - year;
 
-            //double aggregateSeconds = (dSeconds / 0.864); // - DECIMAL_EPOCH;
-            //Console.WriteLine(aggregateSeconds);
-            //int eYear = (int)Math.Floor(aggregateSeconds / 365.2425);
-            //aggregateSeconds -= eYear;
+            long dddhhmmss = (long)Math.Round(fractionalPart * 100000000);
+            int dayOfYear = (int)(dddhhmmss / 100000);
+            int hour = (int)((dddhhmmss % 100000) / 10000);
+            int minute = (int)((dddhhmmss % 10000) / 100);
+            int second = (int)(dddhhmmss % 100);
 
-            //int eDay = (int)Math.Floor(aggregateSeconds / (24 * 60 * 60));
-            //aggregateSeconds -= eDay;
+            long totalMisuDays = (year - 1) * 1000L + dayOfYear;
+            long totalMisuSeconds = totalMisuDays * 100000L + hour * 10000L + minute * 100L + second;
 
-            //int[] eDaysInMonth = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };           
-            //int eMonth = 0;
+            double totalRegularSeconds = (totalMisuSeconds - DECIMAL_EPOCH) * 0.864;
+            long ticks = (long)(totalRegularSeconds * TimeSpan.TicksPerSecond);
 
-            //if (DateTime.IsLeapYear(eYear))
-            //{
-            //    eDaysInMonth[1] += 1; // 29th of Febuary
-            //}
-
-            //foreach (var eDaysInThisMonth in eDaysInMonth)
-            //{
-            //    if (eDay >= eDaysInThisMonth)
-            //    {
-            //        eDay -= eDaysInThisMonth;
-            //        eMonth++;
-            //    }
-            //    else
-            //    {
-            //        break;
-            //    }
-            //}
-
-            //int eHour = (int)Math.Floor(aggregateSeconds / (60 * 60));
-            //aggregateSeconds -= eHour;
-
-            //int eMinute = (int)Math.Floor(aggregateSeconds / (60));
-            //aggregateSeconds -= eMinute;
-
-            //int eSecond = (int)Math.Floor(aggregateSeconds);
-
-            //return new DateTime(eYear, eMonth, eDay, eHour, eMinute, eSecond);
+            return new DateTime(ticks, DateTimeKind.Utc);
         }
     }
 }

@@ -28,13 +28,13 @@ namespace MISUtime
             ["darkyellow"] = ConsoleColor.DarkYellow
         };
 
-        public static void PrintColored(string input)
+        public static void Print(string input)
         {
             var defaultColor = ConsoleColor.White;
             var currentColor = defaultColor;
             Console.ForegroundColor = currentColor;
 
-            var parts = input.Split(new[] { '&' }, StringSplitOptions.None);
+            string[] parts = input.Split(new[] { '&' }, StringSplitOptions.None);
 
             // First part has no preceding color code
             if (!string.IsNullOrWhiteSpace(parts[0]))

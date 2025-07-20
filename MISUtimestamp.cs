@@ -9,6 +9,7 @@ namespace MISUtime
     class MISUtimestamp
     {
         public const long DECIMAL_EPOCH = 76603264427;
+        private const double _calibration = 0.00032502;
         private readonly double _dtimestamp;
         private readonly DateTime _eTime;
 
@@ -16,7 +17,7 @@ namespace MISUtime
         {
             get
             {
-                return double.Parse(_dtimestamp.ToString("0.########"));
+                return Math.Round(_dtimestamp, 8);
             }
         }
 
@@ -24,35 +25,43 @@ namespace MISUtime
         {
             get
             {
-                return int.Parse(_dtimestamp.ToString("0.000000000").Substring(0, 4));
+                return (int)Math.Floor(_dtimestamp);
             }
         }
         public int Day
         {
             get
             {
-                return int.Parse(_dtimestamp.ToString("0.000000000").Substring(5, 3));
+                double fractional = _dtimestamp - Math.Floor(_dtimestamp);
+                long dddhhmmss = (long)Math.Round(fractional * 100000000);
+                return (int)(dddhhmmss / 100000);
             }
         }
         public int Hour
         {
             get
             {
-                return int.Parse(_dtimestamp.ToString("0.000000000").Substring(8, 1));
+                double fractional = _dtimestamp - Math.Floor(_dtimestamp);
+                long dddhhmmss = (long)Math.Round(fractional * 100000000);
+                return (int)((dddhhmmss % 100000) / 10000);
             }
         }
         public int Minute
         {
             get
             {
-                return int.Parse(_dtimestamp.ToString("0.000000000").Substring(9, 2));
+                double fractional = _dtimestamp - Math.Floor(_dtimestamp);
+                long dddhhmmss = (long)Math.Round(fractional * 100000000);
+                return (int)((dddhhmmss % 10000) / 100);
             }
         }
         public int Second
         {
             get
             {
-                return int.Parse(_dtimestamp.ToString("0.000000000").Substring(11, 2));
+                double fractional = _dtimestamp - Math.Floor(_dtimestamp);
+                long dddhhmmss = (long)Math.Round(fractional * 100000000);
+                return (int)(dddhhmmss % 100);
             }
         }
         public MISUtimestamp(double dtimestamp)
@@ -81,7 +90,7 @@ namespace MISUtime
             double fractionalPart = dayOfYear * 100000.0 + hour * 10000.0 + minute * 100.0 + second;
             fractionalPart /= 100000000.0; // 1e8
 
-            _dtimestamp = year + fractionalPart;
+            _dtimestamp = year + fractionalPart + _calibration;
             _eTime = eTime;
         }
 
@@ -91,7 +100,7 @@ namespace MISUtime
             int year = (int)dt;
             double fractionalPart = dt - year;
 
-            long dddhhmmss = (long)Math.Round(fractionalPart * 100000000);
+            long dddhhmmss = (long)Math.Round((fractionalPart - _calibration) * 100000000);
             int dayOfYear = (int)(dddhhmmss / 100000);
             int hour = (int)((dddhhmmss % 100000) / 10000);
             int minute = (int)((dddhhmmss % 10000) / 100);

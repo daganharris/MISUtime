@@ -5,6 +5,7 @@
 - Takes in an Earth ISO Timestamp or a MISU Timestamp and spits out the other format.
 - Has a Help menu with all currently available commands.
 - Will tell you how to format correctly if you make a mistake.
+- Has a mode for the current time and a clock function.
 # MISU What?
 MISU Time is a fictional time system I devised whe worldbuilding for the book I am planning to write. I know, yawn.
 
@@ -14,5 +15,5 @@ It divides the day into 10 hours, with 100 minutes in an hour and 100 seconds in
 - [ ] Add command arguments `--version` and `-v` that returns the version only.
 - [ ] Add support for durations/ages.
 # Disclaimer
-I started this in C# becuase of my familiarity of the language, however for the sake of the executable's size and the efficiency, I am thinking of switching to Go or Rust.
+I started this in C# becuase of my familiarity of the language, however for the sake of the executable's size and the efficiency, I am thinking of switching to Go or Rust at some point in the future.
 
